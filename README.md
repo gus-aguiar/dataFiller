@@ -1,6 +1,6 @@
-# datafill01
+# dataFiller
 
-> a chrome extension tools built with Vite + React, and Manifest v3
+> a chrome extension tools built with Vite + React, Manifest v3, fakerjs and brazilian-utils
 
 ## Installing
 
