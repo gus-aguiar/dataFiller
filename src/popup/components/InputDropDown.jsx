@@ -36,7 +36,7 @@ function InputDropdown({ input, onChange }) {
     <div key={input.className}>
       <p>{label}</p>
       <select
-        value={input.selectedFakeData || 'alou'}
+        value={input.selectedFakeData || ''}
         onChange={onChange}
       >
         {Object.keys(fakeData()).map(key => (

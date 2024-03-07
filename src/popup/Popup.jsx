@@ -7,9 +7,13 @@ import { fakeData } from './helpers/fakeData';
 export const Popup = () => {
 
   const [allInputs, setAllInputs] = useState([])
+  const [hasCapturedInputs, setHasCapturedInputs] = useState(false);
+
+
 
 
   const capturaInputs = async () => {
+    setHasCapturedInputs(true);
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     chrome.scripting.executeScript({
       target: { tabId: tab.id },
@@ -46,33 +50,33 @@ export const Popup = () => {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 
     allInputs.forEach(input => {
-      const inputValue = fakeData()[input.selectedFakeData] || 'default value';
+      const inputValue = fakeData()[input.selectedFakeData] || '';
 
       console.log(input.uniqueClass, fakeData()[input.selectedFakeData]);
       chrome.scripting.executeScript({
         target: { tabId: tab.id },
         function: (uniqueClass, inputValue) => {
           const inputElement = document.querySelector(`input.${uniqueClass}`);
-          if (inputElement) {
-            inputElement.value = inputValue ? inputValue : 'alou';
+          if (inputElement && inputValue) {
+            inputElement.value = inputValue;
             let event = new Event("input", { bubbles: true });
             inputElement.dispatchEvent(event);
           }
+          else { return console.log('Não foi possível preencher o input: ' + uniqueClass + ' com o valor: ' + inputValue) }
         },
         args: [input.uniqueClass, inputValue] // Usa a classe única
       });
     });
   }
 
-
-
-
-
   return (
     <main>
       <h3>Fast Filler</h3>
       <div className="calc">
-        <button onClick={() => capturaInputs()}>
+        <button
+          onClick={() => capturaInputs()}
+          disabled={hasCapturedInputs}
+        >
           Capture os inputs
         </button>
 
