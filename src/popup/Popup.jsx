@@ -1,14 +1,14 @@
 
 import './Popup.css'
-import { fakerPT_BR as faker } from '@faker-js/faker';
-import { generateCNPJ, generateCPF } from '@brazilian-utils/brazilian-utils'
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import InputDropdown from './components/InputDropDown';
 import { fakeData } from './helpers/fakeData';
 
 export const Popup = () => {
 
   const [allInputs, setAllInputs] = useState([])
+
+
   const capturaInputs = async () => {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     chrome.scripting.executeScript({
@@ -38,7 +38,6 @@ export const Popup = () => {
         console.error(chrome.runtime.lastError);
       } else {
         setAllInputs(results[0].result); // Define o estado com o resultado
-        console.log(results[0].result);
       }
     });
   }
@@ -47,20 +46,25 @@ export const Popup = () => {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 
     allInputs.forEach(input => {
+      const inputValue = fakeData()[input.selectedFakeData] || 'default value';
+
+      console.log(input.uniqueClass, fakeData()[input.selectedFakeData]);
       chrome.scripting.executeScript({
         target: { tabId: tab.id },
         function: (uniqueClass, inputValue) => {
           const inputElement = document.querySelector(`input.${uniqueClass}`);
           if (inputElement) {
-            inputElement.value = inputValue;
+            inputElement.value = inputValue ? inputValue : 'alou';
             let event = new Event("input", { bubbles: true });
             inputElement.dispatchEvent(event);
           }
         },
-        args: [input.uniqueClass, fakeData()[input.selectedFakeData]] // Usa a classe única
+        args: [input.uniqueClass, inputValue] // Usa a classe única
       });
     });
   }
+
+
 
 
 

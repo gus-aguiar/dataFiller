@@ -3,9 +3,9 @@ import { generateCNPJ, generateCPF } from '@brazilian-utils/brazilian-utils'
 
 export const fakeData = () => {
     return {
+        nome: faker.person.fullName(),
         cpf: generateCPF(),
         cnpj: generateCNPJ(),
-        nome: faker.person.fullName(),
         CEP: faker.location.zipCode(),
         rua: faker.location.street(),
         cidade: faker.location.city(),
