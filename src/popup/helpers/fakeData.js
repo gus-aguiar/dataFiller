@@ -1,18 +1,21 @@
 import { fakerPT_BR as faker } from '@faker-js/faker';
 import { generateCNPJ, generateCPF } from '@brazilian-utils/brazilian-utils'
 
-export const fakeData = {
-    cpf: generateCPF(),
-    cnpj: generateCNPJ(),
-    nome: faker.person.fullName(),
-    CEP: faker.location.zipCode(),
-    rua: faker.location.street(),
-    cidade: faker.location.city(),
-    estado: faker.location.state(),
-    dataNascimento: faker.date.past(50, '1995-12-31').toLocaleDateString('pt-BR'),
-    pet: faker.animal.dog(),
-    dataNascimentoPet: faker.date.past(25).toLocaleDateString('pt-BR'),
-    peso: faker.number.bigInt(30),
-    celular: faker.phone.number(),
-    email: faker.internet.email(),
+export const fakeData = () => {
+    return {
+        cpf: generateCPF(),
+        cnpj: generateCNPJ(),
+        nome: faker.person.fullName(),
+        CEP: faker.location.zipCode(),
+        rua: faker.location.street(),
+        cidade: faker.location.city(),
+        estado: faker.location.state(),
+        dataNascimento: faker.date.past(50, '1995-12-31').toLocaleDateString('pt-BR'),
+        pet: faker.animal.dog(),
+        dataNascimentoPet: faker.date.past(25).toLocaleDateString('pt-BR'),
+        peso: faker.number.bigInt(30),
+        celular: faker.phone.number(),
+        email: faker.internet.email(),
+    }
 }
+

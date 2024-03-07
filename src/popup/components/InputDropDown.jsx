@@ -1,4 +1,8 @@
-function InputDropdown({ input, onChange, fakeData }) {
+import { fakeData } from '../helpers/fakeData';
+
+
+
+function InputDropdown({ input, onChange }) {
     const label = input.label || input.placeholder || input.innerText || input.id || input.className;
 
     return (
@@ -8,7 +12,7 @@ function InputDropdown({ input, onChange, fakeData }) {
                 value={input.selectedFakeData}
                 onChange={onChange}
             >
-                {Object.keys(fakeData).map(key => (
+                {Object.keys(fakeData()).map(key => (
                     <option key={key} value={key}>{key}</option>
                 ))}
             </select>

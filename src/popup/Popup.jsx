@@ -4,25 +4,8 @@ import { fakerPT_BR as faker } from '@faker-js/faker';
 import { generateCNPJ, generateCPF } from '@brazilian-utils/brazilian-utils'
 import { useState } from 'react';
 import InputDropdown from './components/InputDropDown';
+import { fakeData } from './helpers/fakeData';
 
-
-
-const fakeData = {
-  CEP: faker.location.zipCode(),
-  cidade: faker.location.city(),
-  CPF: generateCPF(),
-  cnpj: generateCNPJ(),
-  Data: faker.date.past({ years: 50 }).toLocaleDateString('pt-BR'),
-  dataNascimentoPet: faker.date.past({ years: 25 }).toLocaleDateString('pt-BR'),
-  email: faker.internet.email(),
-  estado: faker.location.state(),
-  nome: faker.person.fullName(),
-  pet: faker.person.firstName(),
-  raca: faker.animal.dog(),
-  peso: faker.number.float({ min: 10, max: 100, fractionDigits: 3 }),
-  rua: faker.location.street(),
-  Telefone: faker.phone.number(),
-}
 export const Popup = () => {
 
   const [allInputs, setAllInputs] = useState([])
@@ -70,9 +53,11 @@ export const Popup = () => {
           const inputElement = document.querySelector(`input.${uniqueClass}`);
           if (inputElement) {
             inputElement.value = inputValue;
+            let event = new Event("input", { bubbles: true });
+            inputElement.dispatchEvent(event);
           }
         },
-        args: [input.uniqueClass, fakeData[input.selectedFakeData]] // Usa a classe única
+        args: [input.uniqueClass, fakeData()[input.selectedFakeData]] // Usa a classe única
       });
     });
   }
@@ -95,7 +80,6 @@ export const Popup = () => {
         <InputDropdown
           key={input.className}
           input={input}
-          fakeData={fakeData} // Passa fakeData como uma prop
           onChange={(event) => {
             const newAllInputs = [...allInputs];
             newAllInputs[index].selectedFakeData = event.target.value;
