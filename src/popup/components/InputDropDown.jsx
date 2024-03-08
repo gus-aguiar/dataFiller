@@ -9,7 +9,7 @@ function InputDropdown({ input, onChange }) {
     chrome.scripting.executeScript({
       target: { tabId: tab.id },
       function: (selectedClass) => {
-        const inputElement = document.querySelector(`input.${selectedClass}`);
+        const inputElement = document.querySelector(`input[class*="${selectedClass}"]`);
         if (inputElement) {
           inputElement.style.border = '2px solid blue'; // Adiciona uma borda azul ao input
         }
@@ -23,7 +23,7 @@ function InputDropdown({ input, onChange }) {
     chrome.scripting.executeScript({
       target: { tabId: tab.id },
       function: (selectedClass) => {
-        const inputElement = document.querySelector(`input.${selectedClass}`);
+        const inputElement = document.querySelector(`input[class*="${selectedClass}"]`);
         if (inputElement) {
           inputElement.style.border = ''; // Remove a borda do input
         }

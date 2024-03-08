@@ -10,7 +10,7 @@ export const fakeData = () => {
         rua: faker.location.street(),
         cidade: faker.location.city(),
         estado: faker.location.state(),
-        dataNascimento: faker.date.past(50, '1995-12-31').toLocaleDateString('pt-BR'),
+        dataNascimento: faker.date.past({ years: 50, refDate: '1995-12-31' }).toLocaleDateString('pt-BR'),
         pet: faker.animal.dog(),
         dataNascimentoPet: faker.date.past(25).toLocaleDateString('pt-BR'),
         peso: faker.number.bigInt(30),
