@@ -42,7 +42,7 @@ export const Popup = () => {
             placeholder: input.placeholder,
             label: input.label,
             selectedFakeData: '',
-            index,
+            index: index,
             // Adicione aqui qualquer outra propriedade que você precise
           };
         });
@@ -59,12 +59,19 @@ export const Popup = () => {
       }
     });
   }
-
   const setInputs = async () => {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 
     allInputs.forEach(input => {
       const inputValue = fakeData()[input.selectedFakeData] || '';
+
+      // Armazena os dados do input no localStorage
+      const inputClasses = allInputs.map((input, index) => ({
+        index,
+        class: input.className,
+        selectedFakeData: input.selectedFakeData // Adicione esta linha
+      }));
+      localStorage.setItem('inputClasses', JSON.stringify(inputClasses));
 
       chrome.scripting.executeScript({
         target: { tabId: tab.id },
@@ -88,21 +95,23 @@ export const Popup = () => {
 
     // Se não houver inputs, recupera do localStorage
     if (allInputs.length === 0) {
-      setAllInputs(JSON.parse(localStorage.getItem('inputClasses')));
+      const storedInputs = JSON.parse(localStorage.getItem('inputClasses'));
+      await setAllInputs(storedInputs);
+      allInputs = storedInputs; // Certifique-se de que allInputs está atualizado com os dados recuperados
     }
-    chrome.scripting.executeScript({
-      target: { tabId: tab.id },
-      function: (allInputs, fakeData) => {
-        // Captura todos os inputs da página
-        const allPageInputs = Array.from(document.querySelectorAll('input'));
-        allInputs.forEach(input => {
-          const inputValue = fakeData[input.selectedFakeData] || 'xablau';
-          console.log('selectedFakeData:', input.selectedFakeData);
-          console.log('fakeData:', fakeData());
+    console.log('allInputs:', allInputs);
+    allInputs.forEach(input => {
+      console.log('selectedFakeData:', input.selectedFakeData);
+      console.log('fakeData:', fakeData());
+      const inputValue = fakeData()[input.selectedFakeData] || 'xablau';
 
+      chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        function: (inputIndex, inputValue) => {
+          // Captura todos os inputs da página
+          const allPageInputs = Array.from(document.querySelectorAll('input'));
           // Encontra o input correspondente na página pelo índice
-          const inputElement = allPageInputs[input.index];
-          console.log(inputElement);
+          const inputElement = allPageInputs[inputIndex];
 
           if (inputElement && inputValue) {
             inputElement.value = inputValue;
@@ -110,14 +119,13 @@ export const Popup = () => {
             inputElement.dispatchEvent(event);
           }
           else {
-            console.log('Não foi possível preencher o input: ' + input.index + ' com o valor: ' + inputValue);
+            console.log('Não foi possível preencher o input: ' + inputIndex + ' com o valor: ' + inputValue);
           }
-        });
-
-      },
-      args: [allInputs, fakeData()]
+        },
+        args: [input.index, inputValue]
+      });
     });
-  }
+  };
   const handleInputChange = (event, index) => {
     const newAllInputs = [...allInputs];
     newAllInputs[index].selectedFakeData = event.target.value;
