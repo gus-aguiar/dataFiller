@@ -58,7 +58,9 @@
     "sidePanel",
     "storage",
     "activeTab",
-    "scripting"
+    "scripting",
+    "webNavigation",
+    "storage"
   ],
   "chrome_url_overrides": {
     "newtab": "newtab.html"

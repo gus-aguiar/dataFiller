@@ -10,17 +10,14 @@ export const Popup = () => {
   const [hasCapturedInputs, setHasCapturedInputs] = useState(false);
   const [selectedKeys, setSelectedKeys] = useState({});
   const [catchInputs, setCatchInputs] = useState(false);
+  const [presetName, setPresetName] = useState('');
+  const [presetNames, setPresetNames] = useState([]);
+  const [selectedPreset, setSelectedPreset] = useState('');
 
-  // useEffect(() => {
-  //   // Quando a aplicação carrega, verifica se as chaves selecionadas estão no localStorage
-  //   const storedKeys = localStorage.getItem('selectedKeys');
-  //   if (storedKeys) {
-  //     setSelectedKeys(JSON.parse(storedKeys)); // Se existir, seta selectedKeys com essas chaves
-  //   }
-  // }, []);
-
-
-
+  useEffect(() => {
+    const keys = Object.keys(localStorage).filter(key => key.startsWith('DTF_'));
+    setPresetNames(keys);
+  }, []);
 
   const capturaInputs = async () => {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -29,14 +26,10 @@ export const Popup = () => {
       target: { tabId: tab.id },
       function: function getAllInputs() {
         const allInputs = Array.from(document.querySelectorAll('input')).map((input, index) => {
-          const hash = 'a' + Math.random().toString(36).substring(2, 15); // Adiciona 'a' antes do hash
-          input.classList.add(hash);
           return {
-            value: input.value,
             type: input.type,
             id: input.id,
             className: input.className,
-            uniqueClass: hash, // Armazena o hash como uma propriedade separada
             innerHTML: input.innerHTML,
             innerText: input.innerText,
             placeholder: input.placeholder,
@@ -55,23 +48,22 @@ export const Popup = () => {
       } else {
         setHasCapturedInputs(true);
         setAllInputs(results[0].result); // Define o estado com o resultado
-        localStorage.setItem('inputClasses', JSON.stringify(results[0].result)); // Salva os resultados no localStorage
       }
     });
   }
   const setInputs = async () => {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    const inputClasses = allInputs.map((input, index) => ({
+      index,
+      class: input.className,
+      selectedFakeData: input.selectedFakeData
+    }));
+    localStorage.setItem(`DTF_${presetName}`, JSON.stringify(inputClasses));
 
     allInputs.forEach(input => {
       const inputValue = fakeData()[input.selectedFakeData] || '';
 
       // Armazena os dados do input no localStorage
-      const inputClasses = allInputs.map((input, index) => ({
-        index,
-        class: input.className,
-        selectedFakeData: input.selectedFakeData // Adicione esta linha
-      }));
-      localStorage.setItem('inputClasses', JSON.stringify(inputClasses));
 
       chrome.scripting.executeScript({
         target: { tabId: tab.id },
@@ -95,14 +87,12 @@ export const Popup = () => {
 
     // Se não houver inputs, recupera do localStorage
     if (allInputs.length === 0) {
-      const storedInputs = JSON.parse(localStorage.getItem('inputClasses'));
+      const storedInputs = JSON.parse(localStorage.getItem(`DTF_${selectedPreset}`));
+      console.log(selectedPreset, 'selectedPreset')
       await setAllInputs(storedInputs);
-      allInputs = storedInputs; // Certifique-se de que allInputs está atualizado com os dados recuperados
+      allInputs = storedInputs;
     }
-    console.log('allInputs:', allInputs);
     allInputs.forEach(input => {
-      console.log('selectedFakeData:', input.selectedFakeData);
-      console.log('fakeData:', fakeData());
       const inputValue = fakeData()[input.selectedFakeData] || 'xablau';
 
       chrome.scripting.executeScript({
@@ -134,7 +124,19 @@ export const Popup = () => {
     // Atualiza selectedKeys e salva no localStorage
     const newSelectedKeys = { ...selectedKeys, [input.uniqueClass]: event.target.value };
     setSelectedKeys(newSelectedKeys);
-    localStorage.setItem('selectedKeys', JSON.stringify(newAllInputs));
+    localStorage.setItem('DTF_selectedKeys', JSON.stringify(newAllInputs));
+  };
+
+  const handlePresetChange = (event) => {
+    setPresetName(event.target.value);
+  }
+
+  const handleButtonClick = () => {
+    setPresetNames([...presetNames, presetName]);
+  };
+
+  const handleSelectChange = (event) => {
+    setSelectedPreset(event.target.value);
   };
 
   return (
@@ -155,7 +157,25 @@ export const Popup = () => {
         <button onClick={() => setAlreadyInputs()}>
           Preencher inputs já capturados
         </button>
+        <div>
+          <label>Nome do Conjunto de Inputs:</label>
+          <input
+            type="text"
+            value={presetName}
+            onChange={handlePresetChange}
+          />
+
+          <button onClick={handleButtonClick}>Salvar Nome</button>
+          <select value={selectedPreset} onChange={handleSelectChange}>
+            {presetNames.map((name, index) => (
+              <option key={index} value={name}>{name}</option>
+            ))}
+          </select>
+        </div>
+
       </div>
+
+
       {catchInputs && allInputs.map((input, index) => (
         <InputDropdown
           key={input.className}
