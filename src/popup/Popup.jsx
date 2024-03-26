@@ -86,11 +86,9 @@ export const Popup = () => {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 
     // Se não houver inputs, recupera do localStorage
-    if (allInputs.length === 0) {
+    if (!allInputs || allInputs.length === 0) {
       const storedInputs = JSON.parse(localStorage.getItem(`DTF_${selectedPreset}`));
-      console.log(selectedPreset, 'selectedPreset')
       await setAllInputs(storedInputs);
-      allInputs = storedInputs;
     }
     allInputs.forEach(input => {
       const inputValue = fakeData()[input.selectedFakeData] || 'xablau';
@@ -137,6 +135,11 @@ export const Popup = () => {
 
   const handleSelectChange = (event) => {
     setSelectedPreset(event.target.value);
+    const storedInputs = JSON.parse(localStorage.getItem(`DTF_${event.target.value}`));
+    if (storedInputs) {
+      setAllInputs(storedInputs);
+      setAlreadyInputs();
+    }
   };
 
   return (
