@@ -1,7 +1,7 @@
 import "./Popup.css";
 import { useState, useEffect } from "react";
+import InputDropdown from "./components/InputDropDown";
 import { fakeData } from "./helpers/fakeData";
-import Flow from "./components/Flow/Flow";
 
 export const Popup = () => {
   const [allInputs, setAllInputs] = useState([]);
@@ -11,28 +11,16 @@ export const Popup = () => {
   const [presetName, setPresetName] = useState("");
   const [presetNames, setPresetNames] = useState([]);
   const [selectedPreset, setSelectedPreset] = useState("");
-  const [progress, setProgress] = useState("GetInputs");
-  console.log(selectedPreset, "preesnt");
+
   useEffect(() => {
     const keys = Object.keys(localStorage).filter((key) =>
       key.startsWith("DTF_")
     );
-    const item = localStorage.getItem("SelectItem");
-
-    if (keys.length > 0) {
-      setProgress("ChangeInputs");
-    }
-    if (item) {
-      setSelectedPreset(item);
-      handleSelectChange({ target: { value: item } });
-    }
-
+    console.log(keys, "key");
     setPresetNames(keys);
   }, []);
 
   const capturaInputs = async () => {
-    console.log("entrouuuu");
-
     const [tab] = await chrome.tabs.query({
       active: true,
       currentWindow: true,
@@ -70,36 +58,61 @@ export const Popup = () => {
         }
       }
     );
-    setProgress("SetInputs");
   };
-
   const setInputs = async () => {
+    // const [tab] = await chrome.tabs.query({
+    //   active: true,
+    //   currentWindow: true,
+    // });
     const inputClasses = allInputs.map((input, index) => ({
       index,
       class: input.className,
       selectedFakeData: input.selectedFakeData,
     }));
     localStorage.setItem(`DTF_${presetName}`, JSON.stringify(inputClasses));
-    localStorage.setItem("SelectItem", `DTF_${presetName}`);
     setPresetNames([...presetNames, presetName]);
-    setProgress("ChangeInputs");
-    setSelectedPreset(presetName);
-    setPresetName("");
+
+    // allInputs.forEach((input) => {
+    //   const inputValue = fakeData()[input.selectedFakeData] || "";
+
+    //   // Armazena os dados do input no localStorage
+
+    //   chrome.scripting.executeScript({
+    //     target: { tabId: tab.id },
+    //     function: (inputIndex, inputValue) => {
+    //       const allPageInputs = Array.from(document.querySelectorAll("input"));
+    //       const inputElement = allPageInputs[inputIndex];
+    //       if (inputElement && inputValue) {
+    //         inputElement.value = inputValue;
+    //         let event = new Event("input", { bubbles: true });
+    //         inputElement.dispatchEvent(event);
+    //       } else {
+    //         return console.log(
+    //           "Não foi possível preencher o input: " +
+    //             inputIndex +
+    //             " com o valor: " +
+    //             inputValue
+    //         );
+    //       }
+    //     },
+    //     args: [input.index, inputValue],
+    //   });
+    // });
   };
 
   const setAlreadyInputs = async () => {
-    console.log("entrou aqui caram");
     const [tab] = await chrome.tabs.query({
       active: true,
       currentWindow: true,
     });
+    console.log("entrou", allInputs);
     // Se não houver inputs, recupera do localStorage
     if (!allInputs) {
       console.log("storedInputs");
       const storedInputs = JSON.parse(
         localStorage.getItem(`DTF_${selectedPreset}`)
       );
-      setAllInputs(storedInputs);
+      await setAllInputs(storedInputs);
       return;
     }
     allInputs.forEach((input) => {
@@ -155,13 +168,13 @@ export const Popup = () => {
 
   const handleSelectChange = (event) => {
     setSelectedPreset(event.target.value);
+
     const storedInputs = JSON.parse(localStorage.getItem(event.target.value));
-    localStorage.setItem("SelectItem", event.target.value);
     console.log(storedInputs);
 
     if (storedInputs) {
       setAllInputs(storedInputs);
-      // setAlreadyInputs();
+      setAlreadyInputs();
     }
   };
 
@@ -169,22 +182,75 @@ export const Popup = () => {
     <main
       style={{ padding: "0.6rem 1.6rem 1rem 1.6rem", borderRadius: "20px" }}
     >
-      <div className="calc" style={{ width: "100%" }}>
-        <Flow
-          progress={progress}
-          capturaInputs={capturaInputs}
-          hasCapturedInputs={hasCapturedInputs}
-          presetNames={presetNames}
-          setAlreadyInputs={setAlreadyInputs}
-          selectedPreset={selectedPreset}
-          handleSelectChange={handleSelectChange}
-          presetName={presetName}
-          handlePresetChange={handlePresetChange}
-          allInputs={allInputs}
-          handleInputChange={handleInputChange}
-          setInputs={setInputs}
-        />
+      <h3>Fast Filler</h3>
+      <div className="calc">
+        {
+          // ira ser visualizado quando estiver dados no local
+        }
+        {presetNames.length > 0 && (
+          <button style={{ width: "100%" }} onClick={() => setAlreadyInputs()}>
+            Preecher Inputs
+          </button>
+        )}
+
+        <div>
+          {catchInputs && (
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                borderBottom: "1px solid #d2d2d2",
+                paddingBottom: "1rem",
+                marginBottom: "1rem",
+              }}
+            >
+              <label>Nome do Conjunto de Inputs:</label>
+              <div
+                style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}
+              >
+                <input
+                  type="text"
+                  value={presetName}
+                  onChange={handlePresetChange}
+                  style={{ height: "38px" }}
+                />
+                <button onClick={() => setInputs()}>Salvar</button>
+              </div>
+            </div>
+          )}
+          {console.log(selectedPreset)}
+          {/* <button onClick={handleButtonClick}>Salvar Nome</button> */}
+          {!catchInputs && presetNames.length > 0 && (
+            <select value={selectedPreset || 1} onChange={handleSelectChange}>
+              {presetNames.map((name, index) => (
+                <option key={index} value={name}>
+                  {name}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
       </div>
+
+      {catchInputs &&
+        allInputs.map((input, index) => (
+          <>
+            {console.log("input", input)}
+            <InputDropdown
+              key={input.className}
+              input={input}
+              onChange={(event) => handleInputChange(event, index)}
+            />
+          </>
+        ))}
+      {
+        // ira ser visualizado quando estiver capturando os inputs
+      }
+      {!catchInputs && (
+        <button onClick={() => capturaInputs()} disabled={hasCapturedInputs}>
+          Capturar inputs / Capturar novos inputs
+        </button>
+      )}
     </main>
   );
 };

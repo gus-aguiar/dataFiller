@@ -229,7 +229,7 @@ if (customElements && !customElements.get(overlayId)) {
 console.debug('[vite] connecting...');
 const importMetaUrl = new URL(import.meta.url);
 // use server configuration, then fallback to inference
-const serverHost = "127.0.0.1:undefined/";
+const serverHost = "localhost:undefined/";
 const socketProtocol = null || (importMetaUrl.protocol === 'https:' ? 'wss' : 'ws');
 const hmrPort = null;
 const socketHost = `${"localhost" || importMetaUrl.hostname}:${hmrPort || importMetaUrl.port}${"/"}`;
